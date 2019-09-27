@@ -1,4 +1,9 @@
 (async function () {
+    
+    // CS: Well done moving these "magic" strings to their own variables.
+    // .   I had hoped that someone would have called me out on that during
+    // .   the live coding session. Alas, no one did. It is good to see you
+    // .   thinking in this manner.
     const deckIdKey = 'DECK_ID';
     const computerPileName = 'computer_pile';
     const discardPileName = 'discard_pile';
@@ -31,6 +36,22 @@
         await playCard(playableCard.code, computerPileName);
     }
 
+    
+    // CS: I just want to take a moment and discuss what I see with respect to the
+    // .   functions that you've declared below. You have done really well at
+    // .   putting like functions together to improve readability and maintenance
+    // .   of your code base. When you go through this much effort, it hints at
+    // .   a very source-code-oriented way of thinking.
+    // . 
+    // .   The next evolution of this code, in my opinion, would be to move the
+    // .   state and the functions together into their own classes. All of the
+    // .   deck-related stuff could go into a Deck class that allowed you to
+    // .   reason holistically about the functionality, state, and persistence
+    // .   of deck-related information.
+    // . 
+    // .   Just, overall, a really good job. Thank you for sharing this.
+    
+    
     /**
      * Returns an array of cards drawn from the deck.
      * @param {Number} num 
