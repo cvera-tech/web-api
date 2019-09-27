@@ -6,6 +6,6 @@ namespace DeckOfCards.Models
     {
         public string DeckId { get; set; }
         public int Remaining { get; set; }
-        public Dictionary<string, PileInfo> Piles { get; set; }
+        public Dictionary<string, ShortPileInfo> Piles { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +8,72 @@ namespace DeckOfCards.Data
 {
     public class DeckRepository : IDeckRepository
     {
-        async public Task<Deck> CreateNewShuffledDeckAsync(int deckCount)
+        /// <summary>
+        /// Puts a collection of cards of a given deck in a pile.
+        /// </summary>
+        /// <param name="deckId">The ID of the deck.</param>
+        /// <param name="pileName">The name of the pile.</param>
+        /// <param name="cardCodes">The codes of the cards to put in the pile.</param>
+        /// <returns>The updated deck.</returns>
+        public async Task<Deck> AddToPileAsync(string deckId, string pileName, string[] cardCodes)
+        {
+            using (var context = new DeckContext())
+            {
+                var deck = await context.Decks
+                    .Include(d => d.Cards)
+                    .Include(d => d.Piles)
+                    .SingleAsync(d => d.DeckId == deckId);
+
+                // TODO Confirm that cards to add are all drawn
+
+                // I'm not sure how to best format these LINQ statements
+                if (!deck.Piles
+                    .Select(p => p.Name)
+                    .Contains(pileName))
+                {
+                    deck.Piles.Add(new Pile()
+                    {
+                        Name = pileName,
+                        DeckId = deck.Id
+                    });
+                }
+
+                // I don't know if I can just modify the pileIds of each card without 
+                // modifying all the piles in the deck.
+                //
+                // This will also break when a deck has multiple copies of the same card
+                // (e.g. when the CreateNewShuffledDeckAsync method is passed an int > 1)
+                // because I'm filtering by card code instead of card id.
+                //
+                // Perhaps this can be fixed if we require a "source" field in the request.
+                var cards = deck.Cards
+                    .Where(c => cardCodes.Contains(c.Code))
+                    .ToList();
+
+                cards.ForEach(c =>
+                {
+                    if (c.PileId.HasValue)
+                    {
+                        deck.Piles
+                            .Single(p => p.Id == c.PileId.Value)
+                            .Cards
+                            .Remove(c);
+                    }
+                });
+
+                var pile = deck.Piles.Single(p => p.Name == pileName);
+                pile.Cards = pile.Cards.Concat(cards).ToList();
+                await context.SaveChangesAsync();
+                return deck;
+            }
+        }
+
+        /// <summary>
+        /// Creates a new deck and shuffles its cards.
+        /// </summary>
+        /// <param name="deckCount">The number of sets of cards to populate the deck with.</param>
+        /// <returns>The created deck.</returns>
+        public async Task<Deck> CreateNewShuffledDeckAsync(int deckCount)
         {
             var random = new Random();
 
@@ -40,7 +106,7 @@ namespace DeckOfCards.Data
                 }
             }
 
-            // Fisher-Yates shuffle
+            // Fisher - Yates shuffle
             for (int cardIndex = cards.Length - 1; cardIndex >= 0; cardIndex -= 1)
             {
                 int swapIndex = random.Next(0, cardIndex);
@@ -65,7 +131,13 @@ namespace DeckOfCards.Data
             return deck;
         }
 
-        async public Task<Deck> DrawCardsAsync(string deckId, int numCards)
+        /// <summary>
+        /// Draws a number of cards from a given deck.
+        /// </summary>
+        /// <param name="deckId">The ID of the deck.</param>
+        /// <param name="numCards">The number of cards to draw.</param>
+        /// <returns>The updated deck.</returns>
+        public async Task<Deck> DrawCardsAsync(string deckId, int numCards)
         {
             using (var context = new DeckContext())
             {
@@ -73,6 +145,7 @@ namespace DeckOfCards.Data
                     .Include(d => d.Cards)
                     .SingleAsync(d => d.DeckId == deckId);
 
+                // TODO handle the case when there are not enough cards to draw
                 var notDrawn = deck.Cards
                     .Where(c => !c.Drawn)
                     .Take(numCards)
@@ -84,7 +157,38 @@ namespace DeckOfCards.Data
             }
         }
 
-        async public Task<Deck> AddToPileAsync(string deckId, string pileName, string[] cardCodes)
+        /// <summary>
+        /// Shuffles the cards in a list.
+        /// </summary>
+        /// <param name="cards">The list of cards to shuffle.</param>
+        private void Shuffle(List<Card> cards)
+        {
+            var random = new Random();
+            var cardOrders = cards.Select(c => c.Order).ToList();
+
+            // Fisher-Yates shuffle
+            for (int cardIndex = cardOrders.Count - 1; cardIndex >= 0; cardIndex -= 1)
+            {
+                int swapIndex = random.Next(0, cardIndex);
+                int swapValue = cardOrders[swapIndex];
+                cardOrders[swapIndex] = cardOrders[cardIndex];
+                cardOrders[cardIndex] = swapValue;
+            }
+
+            // Reassign card order
+            for (int index = 0; index < cardOrders.Count; index += 1)
+            {
+                cards[index].Order = cardOrders[index];
+            }
+        }
+
+        /// <summary>
+        /// Shuffles the cards of a pile in a given deck.
+        /// </summary>
+        /// <param name="deckId">The ID of the deck.</param>
+        /// <param name="pileName">The name of the pile.</param>
+        /// <returns>True if the shuffle was successful; false otherwise.</returns>
+        public async Task<bool> ShufflePileAsync(string deckId, string pileName)
         {
             using (var context = new DeckContext())
             {
@@ -92,38 +196,27 @@ namespace DeckOfCards.Data
                     .Include(d => d.Cards)
                     .Include(d => d.Piles)
                     .SingleAsync(d => d.DeckId == deckId);
+                var piles = deck.Piles;
+                var pile = piles.Single(p => p.Name == pileName);
+                var cards = pile.Cards.ToList();
 
-                // TODO Confirm that cards to add are all drawn
-
-                // Create a new pile if it doesn't exist
-                if (!deck.Piles.Select(p => p.Name).Contains(pileName))
+                try
                 {
-                    deck.Piles.Add(new Pile()
-                    {
-                        Name = pileName,
-                        DeckId = deck.Id
-                    });
+                    Shuffle(cards);
+                    pile.Cards = cards;
+                    await context.SaveChangesAsync();
+                    return true;
                 }
-
-                // Remove cards from other piles
-                // I'm not sure if I can just modify the pileIds of each card without 
-                // modifying all the piles in the deck.
-                var cards = deck.Cards.Where(c => cardCodes.Contains(c.Code)).ToList();
-                cards.ForEach(c =>
+                catch
                 {
-                    if (c.PileId.HasValue)
-                    {
-                        deck.Piles.Single(p => p.Id == c.PileId.Value).Cards.Remove(c);
-                    }
-                });
-
-                // Add cards to pile
-                var pile = deck.Piles.Single(p => p.Name == pileName);
-                pile.Cards = pile.Cards.Concat(cards).ToList();
-
-                await context.SaveChangesAsync();
-                return deck;
+                    return false;
+                }
             }
+        }
+
+        public async Task<Deck> GetDeckAsync(string deckId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

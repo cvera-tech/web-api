@@ -130,8 +130,11 @@
     <Compile Include="Models\CardDrawRequest.cs" />
     <Compile Include="Models\CardInfo.cs" />
     <Compile Include="Models\DeckCreate.cs" />
+    <Compile Include="Models\IPileInfo.cs" />
     <Compile Include="Models\PileInfo.cs" />
     <Compile Include="Models\ShortDeckInfo.cs" />
+    <Compile Include="Models\ShortPileInfo.cs" />
+    <Compile Include="Models\ShufflePileRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
