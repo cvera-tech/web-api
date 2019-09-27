@@ -1,0 +1,60 @@
+html, body, section, article,
+h1, h2, p, strong, em, a {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  outline: 0;
+  box-sizing: inherit;
+  font: inherit;
+  text-decoration: inherit;
+  text-align: inherit;
+  color: inherit;
+  background: transparent;
+}
+
+
+html, body {
+    height: 100%;
+}
+
+body {
+    background: green;
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+
+}
+
+#computer, #play-area, #human {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#computer {
+    background-color: blue;
+}
+
+#play-area {
+    background-color: gray;
+}
+
+#human {
+    background-color: red;
+}
+
+.card {
+    background-size: cover;
+    height: 135px;
+    width: 90px;
+    /* background-image: url(Magic_card_back.jpg);
+    height: 240px;
+    width: 172px; */
+}
+
+.card-down {
+    background-image: url(card.svg);
+}
+
+.card-up {
+
+}
