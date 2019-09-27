@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DeckOfCards.Data
@@ -61,6 +63,25 @@ namespace DeckOfCards.Data
             }
 
             return deck;
+        }
+
+        async public Task<Deck> DrawCardsAsync(string deckId, int numCards)
+        {
+            using (var context = new DeckContext())
+            {
+                var deck = await context.Decks
+                    .Include(d => d.Cards)
+                    .SingleAsync(d => d.DeckId == deckId);
+
+                var notDrawn = deck.Cards
+                    .Where(c => !c.Drawn)
+                    .Take(numCards)
+                    .ToList();
+                notDrawn.ForEach(c => c.Drawn = !c.Drawn);
+                await context.SaveChangesAsync();
+
+                return deck;
+            }
         }
     }
 }

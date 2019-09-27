@@ -27,5 +27,31 @@ namespace DeckOfCards.Controllers
             };
             return deckInfo;
         }
+
+        [Route("{deckId}/cards")]
+        public async Task<CardDrawnResponse> Delete (string deckId, CardDrawRequest request)
+        {
+            int count = request.Count.HasValue ? request.Count.Value : 1;
+            var deck = await repository.DrawCardsAsync(deckId, count);
+            var drawnCards = deck.Cards
+                .Where(c => c.Drawn)
+                .Reverse()
+                .Take(count)
+                .Reverse()
+                .Select(c => new CardInfo()
+                {
+                    Code = c.Code,
+                    Suit = c.Suit,
+                    Value = c.Value
+                })
+                .ToList();
+            var response = new CardDrawnResponse()
+            {
+                DeckId = deck.DeckId,
+                Remaining = deck.Cards.Where(card => !card.Drawn).Count(),
+                Removed = drawnCards
+            };
+            return response;
+        }
     }
 }
