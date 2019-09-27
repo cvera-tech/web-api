@@ -114,11 +114,18 @@
   <ItemGroup>
     <Compile Include="App_Start\UnityConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\DecksController.cs" />
+    <Compile Include="Data\Card.cs" />
     <Compile Include="Data\Deck.cs" />
+    <Compile Include="Data\DeckContext.cs" />
+    <Compile Include="Data\DeckRepository.cs" />
+    <Compile Include="Data\IDeckRepository.cs" />
     <Compile Include="Data\Pile.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\DeckCreate.cs" />
+    <Compile Include="Models\ShortDeckInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -132,8 +139,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Controllers\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
