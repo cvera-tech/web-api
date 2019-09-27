@@ -1,5 +1,6 @@
 ﻿using DeckOfCards.Data;
 using DeckOfCards.Models;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -28,8 +29,25 @@ namespace DeckOfCards.Controllers
             return deckInfo;
         }
 
+        [Route("{deckId}/piles/{pileName}")]
+        public async Task<AddToPileResponse> Patch(string deckId, string pileName, AddToPileRequest request)
+        {
+            var deck = await repository.AddToPileAsync(deckId, pileName, request.CardCodes);
+            var dictionary = new Dictionary<string, PileInfo>();
+            deck.Piles
+                .ToList()
+                .ForEach(p => dictionary.Add(p.Name, new PileInfo() { Remaining = p.Remaining }));
+            var response = new AddToPileResponse()
+            {
+                DeckId = deck.DeckId,
+                Remaining = deck.Remaining,
+                Piles = dictionary
+            };
+            return response;
+        }
+
         [Route("{deckId}/cards")]
-        public async Task<CardDrawnResponse> Delete (string deckId, CardDrawRequest request)
+        public async Task<CardDrawnResponse> Delete(string deckId, CardDrawRequest request)
         {
             int count = request.Count.HasValue ? request.Count.Value : 1;
             var deck = await repository.DrawCardsAsync(deckId, count);

@@ -6,5 +6,6 @@ namespace DeckOfCards.Data
     {
         Task<Deck> CreateNewShuffledDeckAsync(int deckCount);
         Task<Deck> DrawCardsAsync(string deckId, int numCards);
+        Task<Deck> AddToPileAsync(string deckId, string pileName, string[] cardCodes);
     }
 }

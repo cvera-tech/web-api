@@ -83,5 +83,47 @@ namespace DeckOfCards.Data
                 return deck;
             }
         }
+
+        async public Task<Deck> AddToPileAsync(string deckId, string pileName, string[] cardCodes)
+        {
+            using (var context = new DeckContext())
+            {
+                var deck = await context.Decks
+                    .Include(d => d.Cards)
+                    .Include(d => d.Piles)
+                    .SingleAsync(d => d.DeckId == deckId);
+
+                // TODO Confirm that cards to add are all drawn
+
+                // Create a new pile if it doesn't exist
+                if (!deck.Piles.Select(p => p.Name).Contains(pileName))
+                {
+                    deck.Piles.Add(new Pile()
+                    {
+                        Name = pileName,
+                        DeckId = deck.Id
+                    });
+                }
+
+                // Remove cards from other piles
+                // I'm not sure if I can just modify the pileIds of each card without 
+                // modifying all the piles in the deck.
+                var cards = deck.Cards.Where(c => cardCodes.Contains(c.Code)).ToList();
+                cards.ForEach(c =>
+                {
+                    if (c.PileId.HasValue)
+                    {
+                        deck.Piles.Single(p => p.Id == c.PileId.Value).Cards.Remove(c);
+                    }
+                });
+
+                // Add cards to pile
+                var pile = deck.Piles.Single(p => p.Name == pileName);
+                pile.Cards = pile.Cards.Concat(cards).ToList();
+
+                await context.SaveChangesAsync();
+                return deck;
+            }
+        }
     }
 }

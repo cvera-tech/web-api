@@ -19,6 +19,8 @@ namespace DeckOfCards.Data
 
         public IList<Card> Cards { get; set; }
 
+        public int Remaining { get { return Cards.Count; } }
+
         public Pile()
         {
             Cards = new List<Card>();

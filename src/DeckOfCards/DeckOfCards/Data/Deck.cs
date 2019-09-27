@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace DeckOfCards.Data
 {
@@ -16,6 +17,8 @@ namespace DeckOfCards.Data
         public IList<Pile> Piles { get; set; }
 
         public IList<Card> Cards { get; set; }
+
+        public int Remaining { get { return Cards.Where(c => !c.Drawn).Count(); } }
 
         public Deck()
         {
