@@ -35,9 +35,10 @@ namespace DeckOfCards.Controllers
         public async Task<HttpStatusCode> Post(ShufflePileRequest model)
         {
             var result = await repository.ShufflePileAsync(model.DeckId, model.Pile);
-            // Requirements says we should return 201 (Created), but I think
-            // 204 (No Content) is more appropriate for shuffling.
-            // I also don't know which code to return on fail.
+
+            // Requirements say we should return 201 (Created), but I think 204 
+            // (No Content) is more appropriate for shuffling. I also don't know 
+            // which code to return on fail.
             return result ? HttpStatusCode.NoContent : HttpStatusCode.Conflict;
         }
 
@@ -81,6 +82,51 @@ namespace DeckOfCards.Controllers
                 Remaining = deck.Cards.Where(card => !card.Drawn).Count(),
                 Removed = drawnCards
             };
+            return response;
+        }
+
+        [Route("decks/{deckId}/piles/{pileName}")]
+        public async Task<ListPileResponse> Get(string deckId, string pileName)
+        {
+            var deck = await repository.GetDeckAsync(deckId);
+            var response = new ListPileResponse()
+            {
+                DeckId = deckId,
+                Remaining = deck.Remaining
+            };
+
+            var piles = new Dictionary<string, IPileInfo>();
+            foreach (var p in deck.Piles)
+            {
+                IPileInfo pileInfo;
+                if (p.Name == pileName)
+                {
+                    pileInfo = new PileInfo()
+                    {
+                        Remaining = p.Remaining
+                    };
+
+                    foreach (var c in p.Cards)
+                    {
+                        var cardInfo = new CardInfo()
+                        {
+                            Code = c.Code,
+                            Suit = c.Suit,
+                            Value = c.Value
+                        };
+                        ((PileInfo)pileInfo).Cards.Add(cardInfo);
+                    }
+                }
+                else
+                {
+                    pileInfo = new ShortPileInfo()
+                    {
+                        Remaining = p.Remaining
+                    };
+                }
+                piles.Add(p.Name, pileInfo);
+            }
+            response.Piles = piles;
             return response;
         }
     }

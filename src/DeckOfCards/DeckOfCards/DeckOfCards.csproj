@@ -131,6 +131,7 @@
     <Compile Include="Models\CardInfo.cs" />
     <Compile Include="Models\DeckCreate.cs" />
     <Compile Include="Models\IPileInfo.cs" />
+    <Compile Include="Models\ListPileResponse.cs" />
     <Compile Include="Models\PileInfo.cs" />
     <Compile Include="Models\ShortDeckInfo.cs" />
     <Compile Include="Models\ShortPileInfo.cs" />

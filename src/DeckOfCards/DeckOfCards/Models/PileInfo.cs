@@ -1,12 +1,16 @@
-﻿using DeckOfCards.Data;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace DeckOfCards.Models
 {
     public class PileInfo : IPileInfo
     {
-        public List<Card> Cards { get; set; }
+        public List<CardInfo> Cards { get; set; }
 
         public int Remaining { get; set; }
+
+        public PileInfo()
+        {
+            Cards = new List<CardInfo>();
+        }
     }
 }

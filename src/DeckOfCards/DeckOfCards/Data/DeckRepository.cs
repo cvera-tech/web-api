@@ -158,6 +158,22 @@ namespace DeckOfCards.Data
         }
 
         /// <summary>
+        /// Returns a deck with the given ID.
+        /// </summary>
+        /// <param name="deckId">The ID of the deck.</param>
+        /// <returns>The deck.</returns>
+        public async Task<Deck> GetDeckAsync(string deckId)
+        {
+            using (var context = new DeckContext())
+            {
+                return await context.Decks
+                    .Include(d => d.Cards)
+                    .Include(d => d.Piles)
+                    .SingleAsync(d => d.DeckId == deckId);
+            }
+        }
+
+        /// <summary>
         /// Shuffles the cards in a list.
         /// </summary>
         /// <param name="cards">The list of cards to shuffle.</param>
@@ -212,11 +228,6 @@ namespace DeckOfCards.Data
                     return false;
                 }
             }
-        }
-
-        public async Task<Deck> GetDeckAsync(string deckId)
-        {
-            throw new NotImplementedException();
         }
     }
 }
